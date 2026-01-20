@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "422554011236",
+    "project_id": "ludyo-app",
+    "storage_bucket": "ludyo-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:422554011236:android:1ed3eaaa55049e9a26c171",
+        "android_client_info": {
+          "package_name": "com.u0pala.ludyo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa7gfmQ1tUh68Q2t9lmFQ4-uMbLFitJ34"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,30 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+
+  # CONST & IMMUTABILITY
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    prefer_final_locals: true
+
+  # WIDGET STRUCTURE
+    sort_child_properties_last: true
+    avoid_unnecessary_containers: true
+    use_key_in_widget_constructors: true
+    
+  # CLEAN CODE
+    avoid_print: true
+    unnecessary_new: true
+    unnecessary_this: true
+    unnecessary_lambdas: true
+    avoid_redundant_argument_values: true
+    prefer_single_quotes: true
+
+    always_use_package_imports: true
+
+formatter:
+  trailing_commas: preserve
+  page_width: 120
