@@ -4,7 +4,6 @@ class Game {
   final String coverUrl;
 
   final double? rating;
-  final double? totalRating;
 
   final int? firstReleaseDate;
   final int? gameType;
@@ -25,7 +24,6 @@ class Game {
     required this.coverUrl,
     this.name,
     this.rating,
-    this.totalRating,
     this.firstReleaseDate,
     this.gameType,
     this.franchise,
@@ -55,10 +53,7 @@ class Game {
       coverUrl: json['cover'] != null
           ? igdbImage(json['cover']['url'])
           : '',
-      rating: json['rating'] != null
-          ? (json['rating'] as num).toDouble()
-          : null,
-      totalRating: json['total_rating'] != null
+      rating: json['total_rating'] != null
           ? (json['total_rating'] as num).toDouble()
           : null,
       firstReleaseDate: json['first_release_date'],

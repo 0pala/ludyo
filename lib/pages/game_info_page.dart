@@ -21,10 +21,34 @@ class _GameInfoPageState extends State<GameInfoPage> {
   final IgdbService igdb = IgdbService();
   late Future<Game> game;
 
+  // Map<int, String> pegiRatings = {
+  //   81042: '3+',
+  //   228241: '7+',
+  //   3: '12+',
+  //   4: '16+',
+  //   5: '18+',
+  // };
+
   @override
   void initState() {
     super.initState();
     game = igdb.fetchGameInfo(widget.gameId);
+  }
+
+  // String getPegiRating(List<int> ids) {
+  //   if (ids.isNotEmpty) {
+  //     for (var id in ids) {
+  //       if (pegiRatings.containsKey(id)) {
+  //         return pegiRatings[id]!;
+  //       }
+  //     }
+  //   }
+  //   return 'N/A';
+  // }
+
+  String ratingToString(double r) {
+    final String stringRating = (r / 10).toStringAsFixed(1);
+    return stringRating;
   }
 
   @override
@@ -47,6 +71,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
           }
 
           final game = snapshot.data!;
+
           return Stack(
             children: [
               Padding(
@@ -60,57 +85,144 @@ class _GameInfoPageState extends State<GameInfoPage> {
                     padding: const EdgeInsets.all(12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: CachedNetworkImage(
-                        imageUrl: game.coverUrl,
-                        errorWidget: (_, _, _) => const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 8,
-                          children: [
-                            Icon(Icons.error),
-                            Text(
-                              'Error: Game cover not found',
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                      child: AspectRatio(
+                        aspectRatio: 3 / 4,
+                        child: CachedNetworkImage(
+                          imageUrl: game.coverUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, _, _) => const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error),
+                              SizedBox(height: 8),
+                              Text(
+                                'Error: Game cover not found',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
+              FractionallySizedBox(
+                widthFactor: 1,
+                heightFactor: 1.375,
+                alignment: Alignment.topCenter,
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Card(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          width: 100,
+                          height: 30,
+                          child: Center(
+                            child: Text(
+                              '${ratingToString(game.rating ?? 0)} / 10 ⭐',
+                            ),
+                          ),
+                        ),
+                      ),
+                      Card(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          width: 100,
+                          height: 30,
+                          child: Center(
+                            child: Text(
+                              game.ageRatings.isNotEmpty ? game.ageRatings.first.toString() : 'N/A',
+                            ),
+                          ),
+                        ),
+                      ),
+                      Card(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          width: 100,
+                          height: 30,
+                          child: Center(
+                            child: Text(
+                              '${ratingToString(game.rating ?? 0)} / 10 ⭐',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: DraggableScrollableSheet(
-                  initialChildSize: 0.34,
-                  minChildSize: 0.34,
+                  initialChildSize: 0.28,
+                  minChildSize: 0.28,
                   maxChildSize: 0.7,
+                  snap: true,
                   builder: (context, scrollController) {
-                    return ListView(
-                      controller: scrollController,
-                      children: [
-                        Card(
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                    return Card(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          Center(
+                            child: Card(
+                              color: Theme.of(context).colorScheme.outline,
+                              child: const SizedBox(width: 56, height: 8),
+                            ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: ListView(
+                              controller: scrollController,
                               children: [
-                                Text(
-                                  game.name ?? '',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        game.name ?? '',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        'There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don\'t look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn\'t anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don\'t look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn\'t anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 ),
