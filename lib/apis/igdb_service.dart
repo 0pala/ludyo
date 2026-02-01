@@ -190,7 +190,7 @@ class IgdbService {
       },
       body:
           '''
-        fields id, name, cover.url, age_ratings, dlcs, first_release_date, franchise, platforms, genres, remakes, remasters, similar_games, themes, total_rating, game_type;
+        fields id, name, cover.url, age_ratings, dlcs, first_release_date, franchise, platforms, genres, remakes, remasters, similar_games, themes, total_rating, game_type, storyline, summary;
         where id = ($id);
       ''',
     );

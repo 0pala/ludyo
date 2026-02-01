@@ -1,7 +1,9 @@
 class Game {
   final int id;
-  final String? name;
   final String coverUrl;
+  final String? name;
+  final String? summary;
+  final String? storyline;
 
   final double? rating;
 
@@ -23,6 +25,8 @@ class Game {
     required this.id,
     required this.coverUrl,
     this.name,
+    this.summary,
+    this.storyline,
     this.rating,
     this.firstReleaseDate,
     this.gameType,
@@ -50,6 +54,8 @@ class Game {
     return Game(
       id: json['id'],
       name: json['name'],
+      summary: json['summary'],
+      storyline: json['storyline'],
       coverUrl: json['cover'] != null
           ? igdbImage(json['cover']['url'])
           : '',
