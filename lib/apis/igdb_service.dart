@@ -4,14 +4,21 @@ import 'package:http/http.dart' as http;
 
 import 'package:ludyo/auth/twitch_auth_service.dart';
 import 'package:ludyo/models/game_model.dart';
+import 'package:ludyo/utils/api_cache_manager.dart';
 
 class IgdbService {
   static const String _clientId = String.fromEnvironment('IGDB_CLIENT_ID');
   static const String _baseUrl = 'https://api.igdb.com/v4';
   final _authService = TwitchAuthService();
+  final cache = ApiCacheManager();
 
   Future<List<Game>> fetchPopularGames({int limit = 80}) async {
     final token = await _authService.getAccessToken();
+
+    const cacheKey = 'PopularGames';
+    final cached = cache.get(cacheKey);
+
+    if (cached != null) return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
 
     final popularityResponse = await http.post(
       Uri.parse('$_baseUrl/popularity_primitives'),
@@ -28,15 +35,10 @@ class IgdbService {
       ''',
     );
 
-    if (popularityResponse.statusCode != 200) {
-      throw Exception('Errore IGDB: ${popularityResponse.statusCode}');
-    }
+    if (popularityResponse.statusCode != 200) throw Exception('Errore IGDB: ${popularityResponse.statusCode}');
 
     final List popularityList = jsonDecode(popularityResponse.body);
-
-    if (popularityList.isEmpty) {
-      return [];
-    }
+    if (popularityList.isEmpty) return [];
 
     final gameIds = popularityList.map((e) => e['game_id']).whereType<int>().toSet().toList();
 
@@ -62,6 +64,12 @@ class IgdbService {
     final List gamesJson = jsonDecode(gameResponse.body);
     final gamesMap = {for (final g in gamesJson) g['id']: Game.fromJson(g)};
 
+    await cache.save(
+      cacheKey,
+      gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!.toJson()).toList(),
+      const Duration(hours: 24),
+    );
+
     return gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!).toList();
   }
 
@@ -70,6 +78,11 @@ class IgdbService {
 
     final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
     final since = DateTime.now().subtract(Duration(days: days)).toUtc().millisecondsSinceEpoch ~/ 1000;
+
+    const cacheKey = 'NewReleases';
+    final cached = cache.get(cacheKey);
+
+    if (cached != null) return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
 
     final releaseResponse = await http.post(
       Uri.parse('$_baseUrl/release_dates'),
@@ -118,6 +131,12 @@ class IgdbService {
     final List gamesJson = jsonDecode(gamesResponse.body);
     final gamesMap = {for (final g in gamesJson) g['id']: Game.fromJson(g)};
 
+    await cache.save(
+      cacheKey,
+      gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!.toJson()).toList(),
+      const Duration(hours: 24),
+    );
+
     return gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!).toList();
   }
 
@@ -126,6 +145,11 @@ class IgdbService {
 
     final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
     final future = DateTime.now().add(Duration(days: daysAhead)).toUtc().millisecondsSinceEpoch ~/ 1000;
+
+    const cacheKey = 'UpcomingGames';
+    final cached = cache.get(cacheKey);
+
+    if (cached != null) return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
 
     final releaseResponse = await http.post(
       Uri.parse('$_baseUrl/release_dates'),
@@ -175,6 +199,12 @@ class IgdbService {
     final List gamesJson = jsonDecode(gamesResponse.body);
     final gamesMap = {for (final g in gamesJson) g['id']: Game.fromJson(g)};
 
+    await cache.save(
+      cacheKey,
+      gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!.toJson()).toList(),
+      const Duration(hours: 24),
+    );
+
     return gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!).toList();
   }
 
@@ -190,7 +220,7 @@ class IgdbService {
       },
       body:
           '''
-        fields id, name, cover.url, age_ratings, dlcs, first_release_date, franchise, platforms, genres, remakes, remasters, similar_games, themes, total_rating, game_type, storyline, summary;
+        fields id, name, cover.url, age_ratings.rating, age_ratings.category, dlcs, first_release_date, franchise, platforms, genres, remakes, remasters, similar_games, themes, total_rating, game_type, storyline, summary;
         where id = ($id);
       ''',
     );
@@ -199,13 +229,25 @@ class IgdbService {
       throw Exception('Error: ${gameResponse.statusCode}');
     }
 
-    final gameJson = jsonDecode(gameResponse.body);
+    final List gameJson = jsonDecode(gameResponse.body);
 
     if (gameJson.isEmpty) {
       throw Exception('Error: Game not found');
     }
 
-    final Map<String, dynamic> gameMap = gameJson is List ? gameJson.first : gameJson;
+    final Map<String, dynamic> gameMap = gameJson.first;
+
+    // 🔎 Estrazione PEGI (category == 2)
+    if (gameMap['age_ratings'] != null) {
+      for (var rating in gameMap['age_ratings']) {
+        if (rating['category'] == 2) {
+          // Se il tuo Game model ha un campo pegi, lo aggiungiamo
+          gameMap['pegi'] = rating['rating'];
+          break;
+        }
+      }
+    }
+
     final Game game = Game.fromJson(gameMap);
 
     return game;

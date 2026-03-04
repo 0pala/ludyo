@@ -69,6 +69,10 @@ class GamesCarousel extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     child: CachedNetworkImage(
                       imageUrl: game.coverUrl,
+                      fadeInDuration: const Duration(milliseconds: 180),
+                      fadeOutDuration: const Duration(milliseconds: 120),
+                      fadeInCurve: Curves.easeOut,
+                      fadeOutCurve: Curves.easeIn,
                       errorWidget: (_, _, _) => const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         spacing: 8,

@@ -21,30 +21,11 @@ class _GameInfoPageState extends State<GameInfoPage> {
   final IgdbService igdb = IgdbService();
   late Future<Game> game;
 
-  // Map<int, String> pegiRatings = {
-  //   81042: '3+',
-  //   228241: '7+',
-  //   3: '12+',
-  //   4: '16+',
-  //   5: '18+',
-  // };
-
   @override
   void initState() {
     super.initState();
     game = igdb.fetchGameInfo(widget.gameId);
   }
-
-  // String getPegiRating(List<int> ids) {
-  //   if (ids.isNotEmpty) {
-  //     for (var id in ids) {
-  //       if (pegiRatings.containsKey(id)) {
-  //         return pegiRatings[id]!;
-  //       }
-  //     }
-  //   }
-  //   return 'N/A';
-  // }
 
   String ratingToString(double r) {
     final String stringRating = (r / 10).toStringAsFixed(1);
@@ -88,7 +69,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                       child: AspectRatio(
                         aspectRatio: 3 / 4,
                         child: CachedNetworkImage(
-                          imageUrl: game.coverUrl,
+                          imageUrl: game.coverOriginalUrl ?? '',
                           fit: BoxFit.cover,
                           errorWidget: (_, _, _) => const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -140,7 +121,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           height: 30,
                           child: Center(
                             child: Text(
-                              game.ageRatings.isNotEmpty ? game.ageRatings.first.toString() : 'N/A',
+                              game.ageRatings.toString(),
                             ),
                           ),
                         ),
@@ -181,18 +162,18 @@ class _GameInfoPageState extends State<GameInfoPage> {
                       ),
                       child: Column(
                         children: [
-                          const SizedBox(height: 8),
-                          Center(
-                            child: Card(
-                              color: Theme.of(context).colorScheme.outline,
-                              child: const SizedBox(width: 56, height: 8),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
                           Expanded(
                             child: ListView(
                               controller: scrollController,
                               children: [
+                                const SizedBox(height: 8),
+                                Center(
+                                  child: Card(
+                                    color: Theme.of(context).colorScheme.outline,
+                                    child: const SizedBox(width: 56, height: 8),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
                                 Padding(
                                   padding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
                                   child: Column(
