@@ -55,10 +55,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: String.fromEnvironment("GOOGLE_API_KEY"),
-    appId: String.fromEnvironment("GOOGLE_APP_ID"),
-    messagingSenderId: String.fromEnvironment("GOOGLE_MESSAGGING_SENDER_ID"),
+    apiKey: 'GOOGLE_API_KEY',
+    appId: 'GOOGLE_APP_ID',
+    messagingSenderId: 'GOOGLE_MESSAGGING_SENDER_ID',
     projectId: 'ludyo-app',
     storageBucket: 'ludyo-app.firebasestorage.app',
   );
+
 }

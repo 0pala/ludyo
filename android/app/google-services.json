@@ -12,7 +12,12 @@
           "package_name": "com.u0pala.ludyo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "422554011236-mj4sfl14hgai9sue1mdbljpbmamt6c2v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCa7gfmQ1tUh68Q2t9lmFQ4-uMbLFitJ34"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "422554011236-mj4sfl14hgai9sue1mdbljpbmamt6c2v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
