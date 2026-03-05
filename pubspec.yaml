@@ -1,7 +1,7 @@
 name: ludyo
 description: "The best game-bookmark app"
 publish_to: 'none'
-version: 0.1.0
+version: 2026.3.5
 
 environment:
   sdk: ^3.10.7
@@ -18,12 +18,14 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   http: ^1.6.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
   import_sorter: ^4.6.0
+  rename_app: ^1.6.5
 
 flutter:
   uses-material-design: true

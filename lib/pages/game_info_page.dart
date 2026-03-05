@@ -27,11 +27,6 @@ class _GameInfoPageState extends State<GameInfoPage> {
     game = igdb.fetchGameInfo(widget.gameId);
   }
 
-  String ratingToString(double r) {
-    final String stringRating = (r / 10).toStringAsFixed(1);
-    return stringRating;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,8 +64,10 @@ class _GameInfoPageState extends State<GameInfoPage> {
                       child: AspectRatio(
                         aspectRatio: 3 / 4,
                         child: CachedNetworkImage(
-                          imageUrl: game.coverOriginalUrl ?? '',
+                          imageUrl: game.coverOriginalUrl,
                           fit: BoxFit.cover,
+                          fadeInDuration: const Duration(),
+                          fadeOutDuration: const Duration(),
                           errorWidget: (_, _, _) => const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -106,7 +103,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           height: 30,
                           child: Center(
                             child: Text(
-                              '${ratingToString(game.rating ?? 0)} / 10 ⭐',
+                              game.rating,
                             ),
                           ),
                         ),
@@ -121,7 +118,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           height: 30,
                           child: Center(
                             child: Text(
-                              Game.pegiLabel(game.pegi),
+                              game.pegi,
                             ),
                           ),
                         ),
@@ -136,7 +133,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           height: 30,
                           child: Center(
                             child: Text(
-                              '${ratingToString(game.rating ?? 0)} / 10 ⭐',
+                              game.firstReleaseDate,
                             ),
                           ),
                         ),
@@ -181,7 +178,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                                     children: [
                                       const SizedBox(height: 8),
                                       Text(
-                                        game.name ?? '',
+                                        game.name,
                                         style: TextStyle(
                                           color: Theme.of(context).colorScheme.primary,
                                           fontSize: 24,
@@ -213,7 +210,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                                         child: Padding(
                                           padding: const EdgeInsets.all(16),
                                           child: Text(
-                                            game.summary ?? 'Error: Description not found',
+                                            game.summary,
                                             style: TextStyle(
                                               color: Theme.of(context).colorScheme.primary,
                                               fontSize: 18,

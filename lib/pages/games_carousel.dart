@@ -1,5 +1,3 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:flutter/material.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,8 +6,8 @@ import 'package:ludyo/models/game_model.dart';
 import 'package:ludyo/pages/game_info_page.dart';
 
 class GamesCarousel extends StatelessWidget {
-  GamesCarousel({super.key, required this.games});
-  late Future<List<Game>> games;
+  const GamesCarousel({super.key, required this.games});
+  final Future<List<Game>> games;
 
   @override
   Widget build(BuildContext context) {

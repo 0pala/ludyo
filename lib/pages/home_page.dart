@@ -27,46 +27,44 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 12, top: 16),
-              child: Text(
-                'New Releases',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 12, top: 16),
+            child: Text(
+              'New Releases',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            GamesCarousel(games: newReleases),
-            const Padding(
-              padding: EdgeInsets.only(left: 12, top: 16),
-              child: Text(
-                'Popular Games',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
+          ),
+          GamesCarousel(games: newReleases),
+          const Padding(
+            padding: EdgeInsets.only(left: 12, top: 16),
+            child: Text(
+              'Popular Games',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            GamesCarousel(games: popularGames),
-            const Padding(
-              padding: EdgeInsets.only(left: 12, top: 16),
-              child: Text(
-                'Upcoming Games',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
+          ),
+          GamesCarousel(games: popularGames),
+          const Padding(
+            padding: EdgeInsets.only(left: 12, top: 16),
+            child: Text(
+              'Upcoming Games',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            GamesCarousel(games: upcomingGames),
-          ],
-        ),
+          ),
+          GamesCarousel(games: upcomingGames),
+        ],
       ),
     );
   }
