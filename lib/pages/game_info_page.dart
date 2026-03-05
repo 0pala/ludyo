@@ -121,7 +121,7 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           height: 30,
                           child: Center(
                             child: Text(
-                              game.ageRatings.toString(),
+                              Game.pegiLabel(game.pegi),
                             ),
                           ),
                         ),

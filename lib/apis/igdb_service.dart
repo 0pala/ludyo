@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 
@@ -237,16 +238,108 @@ class IgdbService {
 
     final Map<String, dynamic> gameMap = gameJson.first;
 
-    // 🔎 Estrazione PEGI (category == 2)
-    if (gameMap['age_ratings'] != null) {
-      for (var rating in gameMap['age_ratings']) {
-        if (rating['category'] == 2) {
-          // Se il tuo Game model ha un campo pegi, lo aggiungiamo
-          gameMap['pegi'] = rating['rating'];
-          break;
+    final rawAgeRatings = gameMap['age_ratings'];
+    // Debug: stampa raw age_ratings dalla risposta /games
+    log('[IGDB] game ${gameMap['id']} ${gameMap['name']} — age_ratings raw: $rawAgeRatings');
+
+    final List<String> allLabels = [];
+    if (rawAgeRatings != null && rawAgeRatings is List && rawAgeRatings.isNotEmpty) {
+      final first = rawAgeRatings.first;
+      if (first is Map && first.containsKey('category')) {
+        // già espansi (oggetti con category/rating)
+        for (var rating in rawAgeRatings) {
+          if (rating is Map && rating['category'] != null && rating['rating'] != null) {
+            final cat = (rating['category'] as num).toInt();
+            final r = (rating['rating'] as num).toInt();
+            if (cat == 2) {
+              allLabels.add(Game.ageRatingLabel(2, r));
+              gameMap['pegi'] = r;
+            }
+          }
+        }
+        log('[IGDB] age_ratings espansi → labels: $allLabels, pegi: ${gameMap['pegi']}');
+      } else {
+        // lista di ID (int) oppure oggetti {id: ...} come da /games
+        final ids = <int>[];
+        for (var e in rawAgeRatings) {
+          if (e is int) {
+            ids.add(e);
+          } else if (e is Map && e['id'] != null) {
+            ids.add((e['id'] as num).toInt());
+          }
+        }
+        log('[IGDB] age_ratings come ID → fetch /age_ratings per id = $ids');
+        if (ids.isNotEmpty) {
+          // API attuale: category/rating sono deprecati; usare organization + rating_category
+          final arResponse = await http.post(
+            Uri.parse('$_baseUrl/age_ratings'),
+            headers: {
+              'Client-ID': _clientId,
+              'Authorization': 'Bearer $token',
+              'Accept': 'application/json',
+            },
+            body: 'fields id, organization, rating_category; where id = (${ids.join(',')});',
+          );
+          log('[IGDB] /age_ratings status: ${arResponse.statusCode}, body: ${arResponse.body}');
+          if (arResponse.statusCode == 200) {
+            final List arList = jsonDecode(arResponse.body);
+            int? refToId(dynamic ref) {
+              if (ref == null) return null;
+              if (ref is num) return ref.toInt();
+              if (ref is Map && ref['id'] != null) return (ref['id'] as num).toInt();
+              return null;
+            }
+
+            final categoryIds = arList
+                .where((ar) => ar is Map && refToId(ar['rating_category']) != null)
+                .map<int>((ar) => refToId(ar['rating_category'])!)
+                .toSet()
+                .toList();
+            final Map<int, String> categoryIdToRating = {};
+            if (categoryIds.isNotEmpty) {
+              final catResponse = await http.post(
+                Uri.parse('$_baseUrl/age_rating_categories'),
+                headers: {
+                  'Client-ID': _clientId,
+                  'Authorization': 'Bearer $token',
+                  'Accept': 'application/json',
+                },
+                body: 'fields id, organization, rating; where id = (${categoryIds.join(',')});',
+              );
+              if (catResponse.statusCode == 200) {
+                final List catList = jsonDecode(catResponse.body);
+                for (var c in catList) {
+                  if (c is Map && c['id'] != null && c['rating'] != null) {
+                    categoryIdToRating[(c['id'] as num).toInt()] = (c['rating'] as String).trim();
+                  }
+                }
+              }
+            }
+            final pegiRatingToValue = {'3': 1, '7': 2, '12': 3, '16': 4, '18': 5, 'RP': 6};
+            for (var ar in arList) {
+              if (ar is Map && ar['organization'] != null) {
+                final org = (ar['organization'] is num)
+                    ? (ar['organization'] as num).toInt()
+                    : (ar['organization'] is Map && ar['organization']['id'] != null)
+                    ? (ar['organization']['id'] as num).toInt()
+                    : null;
+                if (org == null) continue;
+                final catId = refToId(ar['rating_category']);
+                final ratingStr = catId != null ? categoryIdToRating[catId] : null;
+                if (org != 2) continue; // solo PEGI
+                final label = ratingStr != null && ratingStr.isNotEmpty ? 'PEGI $ratingStr' : 'PEGI';
+                allLabels.add(label);
+                if (ratingStr != null) {
+                  gameMap['pegi'] = pegiRatingToValue[ratingStr] ?? pegiRatingToValue[ratingStr.toUpperCase()];
+                }
+              }
+            }
+            log('[IGDB] /age_ratings parsed → labels: $allLabels, pegi: ${gameMap['pegi']}');
+          }
         }
       }
     }
+    gameMap['age_rating_labels'] = allLabels;
 
     final Game game = Game.fromJson(gameMap);
 
