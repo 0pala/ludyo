@@ -68,16 +68,17 @@ class _GameInfoPageState extends State<GameInfoPage> {
                           fit: BoxFit.cover,
                           fadeInDuration: const Duration(),
                           fadeOutDuration: const Duration(),
-                          errorWidget: (_, _, _) => const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error),
-                              SizedBox(height: 8),
-                              Text(
-                                'Error: Game cover not found',
+                          errorWidget: (_, _, _) => Padding(
+                            padding: const EdgeInsetsGeometry.all(8),
+                            child: Center(
+                              child: Text(
+                                game.name,
                                 textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

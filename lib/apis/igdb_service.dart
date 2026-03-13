@@ -16,13 +16,11 @@ class IgdbService {
   Future<List<Game>> fetchPopularGames({int limit = 80}) async {
     final token = await _authService.getAccessToken();
 
-    const cacheKey = 'PopularGames';
+    final cacheKey = 'PopularGames_$limit';
     final cached = cache.get(cacheKey);
 
     if (cached != null) {
-      return (cached as List)
-          .map((e) => Game.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
     }
 
     final popularityResponse = await http.post(
@@ -47,11 +45,7 @@ class IgdbService {
     final List popularityList = jsonDecode(popularityResponse.body);
     if (popularityList.isEmpty) return [];
 
-    final gameIds = popularityList
-        .map((e) => e['game_id'])
-        .whereType<int>()
-        .toSet()
-        .toList();
+    final gameIds = popularityList.map((e) => e['game_id']).whereType<int>().toSet().toList();
 
     final gameResponse = await http.post(
       Uri.parse('$_baseUrl/games'),
@@ -62,7 +56,7 @@ class IgdbService {
       },
       body:
           '''
-        fields id, cover.url;
+        fields id, name, cover.url;
         where id = (${gameIds.join(',')});
         limit $limit;
       ''',
@@ -77,69 +71,27 @@ class IgdbService {
 
     await cache.save(
       cacheKey,
-      gameIds
-          .where(gamesMap.containsKey)
-          .map((e) => gamesMap[e]!.toJson())
-          .toList(),
-      const Duration(hours: 24),
+      gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!.toJson()).toList(),
+      const Duration(days: 7),
     );
 
-    return gameIds
-        .where(gamesMap.containsKey)
-        .map((e) => gamesMap[e]!)
-        .toList();
+    return gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!).toList();
   }
 
   Future<List<Game>> fetchNewReleases({int days = 60, int limit = 80}) async {
     final token = await _authService.getAccessToken();
 
     final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-    final since =
-        DateTime.now()
-            .subtract(Duration(days: days))
-            .toUtc()
-            .millisecondsSinceEpoch ~/
-        1000;
+    final since = DateTime.now().subtract(Duration(days: days)).toUtc().millisecondsSinceEpoch ~/ 1000;
 
-    const cacheKey = 'NewReleases';
+    final cacheKey = 'NewReleases_${days}_$limit';
     final cached = cache.get(cacheKey);
 
     if (cached != null) {
-      return (cached as List)
-          .map((e) => Game.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
     }
 
-    final releaseResponse = await http.post(
-      Uri.parse('$_baseUrl/release_dates'),
-      headers: {
-        'Client-ID': _clientId,
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-      body:
-          '''
-      fields game;
-      where date >= $since & date <= $now;
-      limit $limit;
-    ''',
-    );
-
-    if (releaseResponse.statusCode != 200) {
-      throw Exception('Errore IGDB: ${releaseResponse.statusCode}');
-    }
-
-    final List releaseList = jsonDecode(releaseResponse.body);
-
-    final gameIds = releaseList
-        .map((e) => e['game'])
-        .whereType<int>()
-        .toSet()
-        .toList();
-
-    if (gameIds.isEmpty) return [];
-
-    final gamesResponse = await http.post(
+    final response = await http.post(
       Uri.parse('$_baseUrl/games'),
       headers: {
         'Client-ID': _clientId,
@@ -148,55 +100,41 @@ class IgdbService {
       },
       body:
           '''
-      fields id, cover.url, first_release_date;
-      where id = (${gameIds.join(',')});
-      limit ${gameIds.length};
+      fields id, name, cover.url, first_release_date;
+      where first_release_date >= $since & first_release_date <= $now;
+      sort first_release_date desc;
+      limit $limit;
     ''',
     );
 
-    if (gamesResponse.statusCode != 200) {
-      throw Exception('Errore IGDB: ${gamesResponse.statusCode}');
+    if (response.statusCode != 200) {
+      throw Exception('Errore IGDB: ${response.statusCode}');
     }
 
-    final List gamesJson = jsonDecode(gamesResponse.body);
-    final gamesMap = {for (final g in gamesJson) g['id']: Game.fromJson(g)};
+    final List gamesJson = jsonDecode(response.body);
+
+    final games = gamesJson.map<Game>((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
 
     await cache.save(
       cacheKey,
-      gameIds
-          .where(gamesMap.containsKey)
-          .map((e) => gamesMap[e]!.toJson())
-          .toList(),
+      games.map((g) => g.toJson()).toList(),
       const Duration(hours: 24),
     );
 
-    return gameIds
-        .where(gamesMap.containsKey)
-        .map((e) => gamesMap[e]!)
-        .toList();
+    return games;
   }
 
-  Future<List<Game>> fetchUpcomingGames({
-    int daysAhead = 90,
-    int limit = 80,
-  }) async {
+  Future<List<Game>> fetchUpcomingGames({int daysAhead = 90, int limit = 80}) async {
     final token = await _authService.getAccessToken();
 
     final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-    final future =
-        DateTime.now()
-            .add(Duration(days: daysAhead))
-            .toUtc()
-            .millisecondsSinceEpoch ~/
-        1000;
+    final future = DateTime.now().add(Duration(days: daysAhead)).toUtc().millisecondsSinceEpoch ~/ 1000;
 
-    const cacheKey = 'UpcomingGames';
+    final cacheKey = 'UpcomingGames_${daysAhead}_$limit';
     final cached = cache.get(cacheKey);
 
     if (cached != null) {
-      return (cached as List)
-          .map((e) => Game.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
     }
 
     final releaseResponse = await http.post(
@@ -220,11 +158,7 @@ class IgdbService {
 
     final List releaseList = jsonDecode(releaseResponse.body);
 
-    final gameIds = releaseList
-        .map((e) => e['game'])
-        .whereType<int>()
-        .toSet()
-        .toList();
+    final gameIds = releaseList.map((e) => e['game']).whereType<int>().toSet().toList();
 
     if (gameIds.isEmpty) return [];
 
@@ -237,7 +171,7 @@ class IgdbService {
       },
       body:
           '''
-      fields id, cover.url, rating, first_release_date;
+      fields id, name, cover.url, rating, first_release_date;
       where id = (${gameIds.join(',')});
       sort rating desc;
       limit ${gameIds.length};
@@ -253,17 +187,11 @@ class IgdbService {
 
     await cache.save(
       cacheKey,
-      gameIds
-          .where(gamesMap.containsKey)
-          .map((e) => gamesMap[e]!.toJson())
-          .toList(),
+      gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!.toJson()).toList(),
       const Duration(hours: 24),
     );
 
-    return gameIds
-        .where(gamesMap.containsKey)
-        .map((e) => gamesMap[e]!)
-        .toList();
+    return gameIds.where(gamesMap.containsKey).map((e) => gamesMap[e]!).toList();
   }
 
   Future<Game> fetchGameInfo(int id) async {
@@ -312,16 +240,12 @@ class IgdbService {
     );
 
     final List<String> allLabels = [];
-    if (rawAgeRatings != null &&
-        rawAgeRatings is List &&
-        rawAgeRatings.isNotEmpty) {
+    if (rawAgeRatings != null && rawAgeRatings is List && rawAgeRatings.isNotEmpty) {
       final first = rawAgeRatings.first;
       if (first is Map && first.containsKey('category')) {
         // già espansi (oggetti con category/rating)
         for (var rating in rawAgeRatings) {
-          if (rating is Map &&
-              rating['category'] != null &&
-              rating['rating'] != null) {
+          if (rating is Map && rating['category'] != null && rating['rating'] != null) {
             final cat = (rating['category'] as num).toInt();
             final r = (rating['rating'] as num).toInt();
             if (cat == 2) {
@@ -353,8 +277,7 @@ class IgdbService {
               'Authorization': 'Bearer $token',
               'Accept': 'application/json',
             },
-            body:
-                'fields id, organization, rating_category; where id = (${ids.join(',')});',
+            body: 'fields id, organization, rating_category; where id = (${ids.join(',')});',
           );
           log(
             '[IGDB] /age_ratings status: ${arResponse.statusCode}, body: ${arResponse.body}',
@@ -386,15 +309,13 @@ class IgdbService {
                   'Authorization': 'Bearer $token',
                   'Accept': 'application/json',
                 },
-                body:
-                    'fields id, organization, rating; where id = (${categoryIds.join(',')});',
+                body: 'fields id, organization, rating; where id = (${categoryIds.join(',')});',
               );
               if (catResponse.statusCode == 200) {
                 final List catList = jsonDecode(catResponse.body);
                 for (var c in catList) {
                   if (c is Map && c['id'] != null && c['rating'] != null) {
-                    categoryIdToRating[(c['id'] as num).toInt()] =
-                        (c['rating'] as String).trim();
+                    categoryIdToRating[(c['id'] as num).toInt()] = (c['rating'] as String).trim();
                   }
                 }
               }
@@ -411,24 +332,17 @@ class IgdbService {
               if (ar is Map && ar['organization'] != null) {
                 final org = (ar['organization'] is num)
                     ? (ar['organization'] as num).toInt()
-                    : (ar['organization'] is Map &&
-                          ar['organization']['id'] != null)
+                    : (ar['organization'] is Map && ar['organization']['id'] != null)
                     ? (ar['organization']['id'] as num).toInt()
                     : null;
                 if (org == null) continue;
                 final catId = refToId(ar['rating_category']);
-                final ratingStr = catId != null
-                    ? categoryIdToRating[catId]
-                    : null;
+                final ratingStr = catId != null ? categoryIdToRating[catId] : null;
                 if (org != 2) continue; // solo PEGI
-                final label = ratingStr != null && ratingStr.isNotEmpty
-                    ? 'PEGI $ratingStr'
-                    : 'PEGI';
+                final label = ratingStr != null && ratingStr.isNotEmpty ? 'PEGI $ratingStr' : 'PEGI';
                 allLabels.add(label);
                 if (ratingStr != null) {
-                  gameMap['pegi'] =
-                      pegiRatingToValue[ratingStr] ??
-                      pegiRatingToValue[ratingStr.toUpperCase()];
+                  gameMap['pegi'] = pegiRatingToValue[ratingStr] ?? pegiRatingToValue[ratingStr.toUpperCase()];
                 }
               }
             }
@@ -446,25 +360,20 @@ class IgdbService {
     await cache.save(
       cacheKey,
       game.toJson(),
-      const Duration(hours: 24),
+      const Duration(days: 7),
     );
 
     return game;
   }
 
-  Future<List<Game>> fetchSearchedGames(
-    String searchText, {
-    int limit = 80,
-  }) async {
+  Future<List<Game>> fetchSearchedGames(String searchText, {int limit = 80}) async {
     final token = await _authService.getAccessToken();
 
     final cacheKey = 'Search: $searchText';
     final cached = cache.get(cacheKey);
 
     if (cached != null) {
-      return (cached as List)
-          .map((e) => Game.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return (cached as List).map((e) => Game.fromJson(Map<String, dynamic>.from(e))).toList();
     }
 
     final searchResponse = await http.post(
@@ -494,7 +403,7 @@ class IgdbService {
     await cache.save(
       cacheKey,
       games.map((g) => g.toJson()).toList(),
-      const Duration(hours: 24),
+      const Duration(hours: 6),
     );
 
     return games;

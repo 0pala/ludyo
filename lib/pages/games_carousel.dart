@@ -29,7 +29,7 @@ class GamesCarousel extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: games.length,
+            itemCount: games.length < 40 ? games.length : 40,
             itemBuilder: (_, index) {
               final game = games[index];
 
@@ -71,16 +71,14 @@ class GamesCarousel extends StatelessWidget {
                       fadeOutDuration: const Duration(milliseconds: 120),
                       fadeInCurve: Curves.easeOut,
                       fadeOutCurve: Curves.easeIn,
-                      errorWidget: (_, _, _) => const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 8,
-                        children: [
-                          Icon(Icons.error),
-                          Text(
-                            'Error: Game Cover not found',
+                      errorWidget: (_, _, _) => Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Center(
+                          child: Text(
+                            game.name,
                             textAlign: TextAlign.center,
                           ),
-                        ],
+                        ),
                       ),
                       fit: BoxFit.fill,
                       width: double.infinity,

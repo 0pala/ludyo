@@ -42,6 +42,18 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void loginWithGoogle() async {
+    try {
+      await authService.value.signInWithGoogle();
+      popPage();
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message!;
+      });
+      log(e.message!);
+    }
+  }
+
   void popPage() {
     Navigator.pop(context);
   }
@@ -54,7 +66,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
+              spacing: 20,
               children: [
+                const SizedBox(height: 24),
                 const Text(
                   'Sign in',
                   style: TextStyle(
@@ -62,47 +76,82 @@ class _LoginPageState extends State<LoginPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 32),
+                Container(
+                  height: 1,
+                  width: 256,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
+                ),
                 TextField(
                   controller: emailController,
                   decoration: const InputDecoration(
                     labelText: 'email',
                   ),
                 ),
-                const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   decoration: const InputDecoration(labelText: 'password'),
                 ),
                 errorMessage == ''
-                    ? const SizedBox(height: 24)
-                    : Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          Text(
-                            errorMessage,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.red,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                    ? const SizedBox(height: 2)
+                    : Text(
+                        errorMessage,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.red,
+                        ),
                       ),
-                FilledButton(
-                  onPressed: login,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsetsGeometry.symmetric(horizontal: 32),
-                  ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: login,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsetsGeometry.symmetric(horizontal: 32),
+                    ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(
+                  height: 24,
+                  child: Text(
+                    'or',
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: loginWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsetsGeometry.symmetric(horizontal: 32),
+                    ),
+                    child: Row(
+                      spacing: 24,
+                      children: [
+                        Image.asset(
+                          'assets/icons/google_icon.png',
+                          width: 30,
+                        ),
+                        const Text(
+                          'Sign in with Google',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

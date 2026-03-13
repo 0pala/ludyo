@@ -14,8 +14,7 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage>
-    with SingleTickerProviderStateMixin {
+class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -60,7 +59,6 @@ class _SearchPageState extends State<SearchPage>
   void _exitSearch() {
     HapticFeedback.mediumImpact();
     _focusNode.unfocus();
-    _controller.clear();
   }
 
   @override
@@ -95,7 +93,7 @@ class _SearchPageState extends State<SearchPage>
                       child: AnimatedScale(
                         scale: _isPressed ? 0.8 : 1.0,
                         duration: const Duration(milliseconds: 100),
-                        child: const Icon(Icons.cancel_outlined),
+                        child: const Icon(Icons.clear),
                       ),
                     )
                   : null,
@@ -134,8 +132,8 @@ class _SearchPageState extends State<SearchPage>
                 ),
                 itemCount: games.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // numero di colonne
-                  childAspectRatio: 0.7, // regola proporzioni card
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.7,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 12,
                 ),
@@ -147,25 +145,23 @@ class _SearchPageState extends State<SearchPage>
                       context,
                       PageRouteBuilder(
                         barrierColor: Theme.of(context).colorScheme.surface,
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            GameInfoPage(gameId: game.id),
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                              final tween =
-                                  Tween(
-                                    begin: const Offset(0, 1),
-                                    end: Offset.zero,
-                                  ).chain(
-                                    CurveTween(
-                                      curve: Curves.easeOutCubic,
-                                    ),
-                                  );
-
-                              return SlideTransition(
-                                position: animation.drive(tween),
-                                child: child,
+                        pageBuilder: (context, animation, secondaryAnimation) => GameInfoPage(gameId: game.id),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          final tween =
+                              Tween(
+                                begin: const Offset(0, 1),
+                                end: Offset.zero,
+                              ).chain(
+                                CurveTween(
+                                  curve: Curves.easeOutCubic,
+                                ),
                               );
-                            },
+
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
                       ),
                     ),
                     child: Card(
@@ -179,16 +175,16 @@ class _SearchPageState extends State<SearchPage>
                         fadeOutDuration: const Duration(milliseconds: 120),
                         fadeInCurve: Curves.easeOut,
                         fadeOutCurve: Curves.easeIn,
-                        errorWidget: (_, _, _) => const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error),
-                              Text(
-                                'Error: Game Cover not found',
-                                textAlign: TextAlign.center,
+                        errorWidget: (_, _, _) => Padding(
+                          padding: const EdgeInsetsGeometry.all(8),
+                          child: Center(
+                            child: Text(
+                              game.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 16,
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         fit: BoxFit.cover,

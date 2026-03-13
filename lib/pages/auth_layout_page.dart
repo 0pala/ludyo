@@ -42,6 +42,7 @@ class Auth extends StatelessWidget {
       padding: const EdgeInsetsGeometry.symmetric(horizontal: 64),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 24,
         children: [
           OutlinedButton(
             onPressed: () => Navigator.push(
@@ -60,9 +61,7 @@ class Auth extends StatelessWidget {
               style: TextStyle(),
             ),
           ),
-          const SizedBox(height: 24),
           const Text('or'),
-          const SizedBox(height: 24),
           FilledButton(
             onPressed: () => Navigator.push(
               context,

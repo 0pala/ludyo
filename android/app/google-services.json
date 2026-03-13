@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "422554011236-85p4vdnq0v1jo3002h1vv8d71lav2gtd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.u0pala.ludyo",
+            "certificate_hash": "538611b66fe344eed6a368f8e2e3602a32640bc0"
+          }
+        },
+        {
           "client_id": "422554011236-mj4sfl14hgai9sue1mdbljpbmamt6c2v.apps.googleusercontent.com",
           "client_type": 3
         }
